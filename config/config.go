@@ -14,6 +14,7 @@ type Config struct{
 	Password string `json:"postgres"`
 	Ssl string `json:"ssl"`
 
+	
 }
 
 // const filename = "./config/config.json"

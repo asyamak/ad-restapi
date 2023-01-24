@@ -3,11 +3,11 @@ package usecase
 import "ad-api/internal/repository"
 
 type Usecase struct{
-	AdsUsecaser 
+	AdsUsecase
 }
 
 func NewUsecase(r *repository.Repository) *Usecase{
 	return &Usecase{
-		AdsUsecaser: NewAdUsecase(r.CreateAds),
+		AdsUsecase: NewAdUsecase(r.CreateAds),
 	}
 }

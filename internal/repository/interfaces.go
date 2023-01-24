@@ -9,6 +9,7 @@ type Repository struct{
 
 func NewAdRepository(db *sql.DB) *Repository{
 	return &Repository{
+		
 		CreateAds: NewCreateAdRepository(db),
 	}
 }

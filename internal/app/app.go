@@ -16,6 +16,7 @@ type App struct{
 func New(config *config.Config) *App{
 	return &App{
 		 config,
+
 	}
 
 }
@@ -29,6 +30,9 @@ func(a *App) Start() error{
 	
 	AdsRepository := repository.NewAdRepository(db)
 	fmt.Println(AdsRepository)
+	//add usecase and hanlers
+
+	//server
 
 	return nil
 

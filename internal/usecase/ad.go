@@ -9,8 +9,10 @@ type AdUsecase struct{
 	Repository repository.CreateAds
 }
 
+
 func NewAdUsecase(r repository.CreateAds)*AdUsecase{
 	return &AdUsecase{
+		
 		Repository: r,
 	}
 }

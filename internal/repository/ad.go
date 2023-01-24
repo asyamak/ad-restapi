@@ -20,6 +20,7 @@ func NewCreateAdRepository(db *sql.DB) *CreateAdRepository{
 func(r *CreateAdRepository)CreateAd(links[]string,name,description string, price float32)error{
 	query := `INSERT INTO ad (name, description,price)VALUES($1,$2,$3) RETURNING id;`
 
+	
 	tx, err := r.db.Begin()
 	if err != nil {
 		return fmt.Errorf("create ad: transaction begin: %w",err)
