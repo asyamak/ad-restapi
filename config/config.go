@@ -7,14 +7,13 @@ import (
 )
 
 type Config struct{
+	DatabaseUrl string `json:"databaseUrl"`
 	User string `json:"user"`
 	DBname string `json:"dbname"`
 	Hostname string `json:"hostname"`
 	Port string `json:"port"`
-	Password string `json:"postgres"`
-	Ssl string `json:"ssl"`
-
-	
+	Password string `json:"password"`
+	Ssl string `json:"ssl"`	
 }
 
 // const filename = "./config/config.json"
@@ -29,13 +28,14 @@ func New(filename string) (*Config, error){
 	if err = json.NewDecoder(configFile).Decode(&config); err != nil{
 		return nil, fmt.Errorf("decoding: %w",err)
 	}
-
-	return &Config{
-		User: config.User,
-		DBname: config.DBname,
-		Hostname: config.Hostname,
-		Port: config.Port,
-		Password: config.Password,
-		Ssl: config.Ssl,
-	},nil
+	// &Config{
+	// 	DatabaseUrl: ,
+	// 	User: config.User,
+	// 	DBname: config.DBname,
+	// 	Hostname: config.Hostname,
+	// 	Port: config.Port,
+	// 	Password: config.Password,
+	// 	Ssl: config.Ssl,
+	// },
+	return config, nil
 }
