@@ -1,26 +1,26 @@
 package database
 
 import (
-	"ad-api/config"
 	"database/sql"
+
+	"ad-api/config"
 
 	_ "github.com/lib/pq"
 )
 
-func New(cfg *config.Config) (*sql.DB,error){
-	
+func New(cfg *config.Config) (*sql.DB, error) {
 	// dbConfig := fmt.Sprintf("user=%s dbname=%s host=%s port=%s password=%s sslmode=%s", cfg.User, cfg.DBname, cfg.Hostname,cfg.Port, cfg.Password,cfg.Ssl)
-	
+
 	db, err := sql.Open("postgres", cfg.DatabaseUrl)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = db.Ping(); err != nil{
-		return nil , err
+	if err = db.Ping(); err != nil {
+		return nil, err
 	}
 
-	if err = createTable(db); err != nil{
+	if err = createTable(db); err != nil {
 		return nil, err
 	}
 
@@ -33,7 +33,7 @@ const adTable = `CREATE TABLE IF NOT EXISTS ad (
 	name VARCHAR(200),
 	description varchar(2000),
 	price FLOAT,
-	date  DATE DEFAULT (datetime('now'))
+	date_creation  DATE DEFAULT (datetime('now'))
 );`
 
 const photos = `CREATE TABLE IF NOT EXISTS photo(
@@ -48,14 +48,13 @@ const ad_photos = `CREATE TABLE IF NOT EXISTS ad_photos(
 	photo_id INTEGER REFERENCES photo(id) ON DELETE CASCADE 
 );`
 
-
-func createTable(db *sql.DB) error{
-	tables := []string{adTable,photos,ad_photos}
-	for _, table := range tables{
-	_, err := db.Exec(table)
-	if err != nil {
-		return err
+func createTable(db *sql.DB) error {
+	tables := []string{adTable, photos, ad_photos}
+	for _, table := range tables {
+		_, err := db.Exec(table)
+		if err != nil {
+			return err
+		}
 	}
-}
 	return nil
 }
