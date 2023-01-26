@@ -1,5 +1,6 @@
 {
     "databaseUrl":"user=postgres dbname=postgres host=localhost port=5432 password=postgres sslmode=disable",
+    "app_port": "9090",
     "user": "postgres",
     "dbname": "postgres",
     "hostname": "localhost",

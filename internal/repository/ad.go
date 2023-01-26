@@ -13,6 +13,7 @@ type CreateAds interface {
 	// AddPhotos(photos []entity.Photos, guid string) ([]int, error)
 	// InsertAdPhotos(adId int, photoId []int) error
 	GetAdsAsc(search entity.Search, offset int) ([]entity.Ad, error)
+	DeleteAdById(guid string) error
 }
 
 type CreateAdRepository struct {
@@ -51,7 +52,6 @@ func (r *CreateAdRepository) CreateAd(ad entity.Ad) error {
 		fmt.Printf("error add photos %v\n", err)
 		return fmt.Errorf("add photos: prepare: %w", err)
 	}
-	defer stmt.Close()
 
 	var links_id []int
 	for i := range ad.Photos {
@@ -70,7 +70,6 @@ func (r *CreateAdRepository) CreateAd(ad entity.Ad) error {
 	if err != nil {
 		return fmt.Errorf("insert ad photos: prepare: %w", err)
 	}
-	defer stmt.Close()
 
 	for i := range links_id {
 		if _, err = stmt.Exec(ad_id, links_id[i]); err != nil {
@@ -121,4 +120,46 @@ func (r *CreateAdRepository) GetAdsAsc(search entity.Search, offset int) ([]enti
 	}
 
 	return ads, nil
+}
+
+func (r *CreateAdRepository) DeleteAdById(guid string) error {
+	query := `DELETE FROM ad WHERE guid = $1;`
+	tx, err := r.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	stmt, err := tx.Prepare(query)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(guid)
+	if err != nil {
+		if err = tx.Rollback(); err != nil {
+			return err
+		}
+		return err
+	}
+
+	query = `DELETE FROM photo WHERE guid = $1;`
+	stmt, err = tx.Prepare(query)
+	if err != nil {
+		return err
+	}
+
+	_, err = stmt.Exec(guid)
+	if err != nil {
+		if err = tx.Rollback(); err != nil {
+			return err
+		}
+		return err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return err
+	}
+
+	return nil
 }

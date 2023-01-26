@@ -60,7 +60,8 @@ func (h *Handler) GetAds(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (h *Handler) GetOneAd(w http.ResponseWriter, r *http.Request) {}
+func (h *Handler) GetOneAd(w http.ResponseWriter, r *http.Request) {
+}
 
 type AdRequest struct {
 	Name        string   `json:"name"`
@@ -105,7 +106,6 @@ func (h *Handler) CreateAd(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("error created ad %v", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
-
 	}
 
 	if err := json.NewEncoder(w).Encode(id); err != nil {
@@ -117,10 +117,41 @@ func (h *Handler) CreateAd(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
+type deleteAd struct {
+	Id     string `json:"id"`
+	Status string `json:"status"`
+}
+
 func (h *Handler) DeleteAd(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "DELETE" {
+	if r.Method != http.MethodDelete {
+		http.Error(w, "incorrect method", http.StatusMethodNotAllowed)
 		return
 	}
-	id := r.URL.Query().Get("id")
-	fmt.Printf("id in delete handler %v", id)
+	var request deleteAd
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Invalid request bodyyyyy", http.StatusBadRequest)
+		return
+	}
+	fmt.Printf("request: %v\n", request)
+
+	err := h.usecase.DeleteById(request.Id)
+	if err != nil {
+		if errors.Is(err, usecase.ErrUuidLength) {
+			log.Printf("error incorrect guid")
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+		http.Error(w, "internal server errrrror", http.StatusInternalServerError)
+		return
+	}
+
+	request.Status = "success"
+
+	if err := json.NewEncoder(w).Encode(request); err != nil {
+		log.Println(err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }

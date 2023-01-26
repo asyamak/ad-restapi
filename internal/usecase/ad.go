@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	// "ad-api/internal/controllers"
 	"ad-api/internal/entity"
 	"ad-api/internal/repository"
 
@@ -20,6 +21,7 @@ var (
 type AdsUsecase interface {
 	CreateAd(ad entity.Ad) (string, error)
 	GetAds(search entity.Search) ([]entity.Ad, error)
+	DeleteById(guid string) error
 }
 
 type AdUsecase struct {
@@ -78,4 +80,19 @@ func (u *AdUsecase) GetAds(search entity.Search) ([]entity.Ad, error) {
 	}
 
 	return ads, nil
+}
+
+var ErrUuidLength = errors.New("invalid length of uuid")
+
+func (u *AdUsecase) DeleteById(guid string) error {
+	if len(guid) > 16 || len(guid) < 16 {
+		return ErrUuidLength
+	}
+	guid = strings.TrimSpace(guid)
+	fmt.Println(guid)
+	err := u.Repository.DeleteAdById(guid)
+	if err != nil {
+		return err
+	}
+	return nil
 }

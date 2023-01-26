@@ -36,12 +36,10 @@ func (a *App) Start() error {
 	adsHandler := controllers.NewHandler(adsUsecase)
 
 	router := controllers.SetUpRouter(adsHandler)
-	server := server.New(a.config, router)
+	server := server.New(a.config, router, db)
 
-	// fmt.Println(server)
-
+	// check graceful shutdown
 	interrupt := make(chan os.Signal, 1)
-
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
 
 	select {
@@ -53,8 +51,8 @@ func (a *App) Start() error {
 
 	err = server.Shutdown()
 	if err != nil {
+		log.Printf("server shutdown: %v", err)
 		return err
 	}
-
 	return nil
 }

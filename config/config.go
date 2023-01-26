@@ -6,27 +6,26 @@ import (
 	"os"
 )
 
-type Config struct{
+type Config struct {
 	DatabaseUrl string `json:"databaseUrl"`
-	User string `json:"user"`
-	DBname string `json:"dbname"`
-	Hostname string `json:"hostname"`
-	Port string `json:"port"`
-	Password string `json:"password"`
-	Ssl string `json:"ssl"`	
+	App_Port    string `json:"app_port"`
+	User        string `json:"user"`
+	DBname      string `json:"dbname"`
+	Hostname    string `json:"hostname"`
+	Port        string `json:"port"`
+	Password    string `json:"password"`
+	Ssl         string `json:"ssl"`
 }
 
-// const filename = "./config/config.json"
-
-func New(filename string) (*Config, error){
+func New(filename string) (*Config, error) {
 	var config *Config
 	configFile, err := os.Open(filename)
 	if err != nil {
-		return nil, fmt.Errorf("os open: %w",err)
+		return nil, fmt.Errorf("os open: %w", err)
 	}
 
-	if err = json.NewDecoder(configFile).Decode(&config); err != nil{
-		return nil, fmt.Errorf("decoding: %w",err)
+	if err = json.NewDecoder(configFile).Decode(&config); err != nil {
+		return nil, fmt.Errorf("decoding: %w", err)
 	}
 	// &Config{
 	// 	DatabaseUrl: ,

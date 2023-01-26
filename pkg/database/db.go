@@ -29,7 +29,7 @@ func New(cfg *config.Config) (*sql.DB, error) {
 
 const adTable = `CREATE TABLE IF NOT EXISTS ad (
 	id SERIAL PRIMARY KEY,
-	guid TEXT,
+	guid uuid NOT NULL UNIQUE,
 	name VARCHAR(200),
 	description varchar(2000),
 	price FLOAT,
@@ -38,7 +38,7 @@ const adTable = `CREATE TABLE IF NOT EXISTS ad (
 
 const photos = `CREATE TABLE IF NOT EXISTS photo(
 	id SERIAL PRIMARY KEY,
-	guid TEXT,
+	guid text REFERENCES ad(guid) ON DELETE CASCADE,
 	link TEXT
 );`
 

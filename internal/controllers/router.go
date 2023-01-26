@@ -7,6 +7,6 @@ func SetUpRouter(h *Handler) *http.ServeMux {
 	router.HandleFunc("/ad", h.GetAds)
 	router.HandleFunc("/ad/", h.GetOneAd)
 	router.HandleFunc("/ad/create", h.CreateAd)
-	router.HandleFunc("/ad/delete/{id}", h.DeleteAd)
+	router.HandleFunc("/ad/delete/", h.DeleteAd)
 	return router
 }
