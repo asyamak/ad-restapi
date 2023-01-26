@@ -77,7 +77,7 @@ func (r *CreateAdRepository) InsertAdPhotos(adId, photoId int) error {
 
 // GetAdsAsc function sorts all ads by price asc and date of creation asc
 func (r *CreateAdRepository) GetAdsAsc(search entity.Search, offset int) ([]entity.Ad, error) {
-	query := `SELECT id, guid, name, description, price, date_creation FROM ads ORDER BY price ASC date_creation ASC LIMIT $1 OFFSET $2;`
+	query := `SELECT id, guid, name, description, price FROM ads ORDER BY price ASC, timestamp ASC LIMIT $1 OFFSET $2;`
 
 	var ads []entity.Ad
 
@@ -96,7 +96,7 @@ func (r *CreateAdRepository) GetAdsAsc(search entity.Search, offset int) ([]enti
 
 	for rows.Next() {
 		var ad entity.Ad
-		err = rows.Scan(&ad.Id, &ad.Guid, &ad.Name, &ad.Description, &ad.Price, &ad.Date)
+		err = rows.Scan(&ad.Id, &ad.Guid, &ad.Name, &ad.Description, &ad.Price)
 		if err != nil {
 			return nil, err
 		}

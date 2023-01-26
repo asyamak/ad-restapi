@@ -48,22 +48,37 @@ func(h *Handler) GetAds(w http.ResponseWriter, r *http.Request){
 func(h *Handler) GetOneAd(w http.ResponseWriter, r *http.Request){}
 
 
+type AdRequest struct{
+	Name string `json:"name"`
+	Description string `json:"description"`
+	Price float32 `json:"price"`
+	Links []PhotoLinks `json:"photo_links"` 
+}
+ type PhotoLinks struct{
+	Link string `json:"link"`
+}
+
 func(h *Handler) CreateAd(w http.ResponseWriter, r *http.Request){
 	if r.Method != "GET"{
 		http.Error(w,"incorrect method", http.StatusMethodNotAllowed)
 		return
 	}
 
-	request := entity.Ad{}
+	var request AdRequest
 	
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
-	fmt.Println(r.Body)
+	// fmt.Println(r.Body)
 	fmt.Printf("request body %v\n",request)
-
-	id, err := h.usecase.CreateAd(request)
+	
+	id, err := h.usecase.CreateAd(entity.Ad{
+		Name: request.Name,
+		Description: request.Description,
+		Price: request.Price,
+		Photos,
+	})
 	if err != nil {
 		if errors.Is(err, usecase.ErrDiscriptionLength)||
 			errors.Is(err, usecase.ErrLinkNumber)||

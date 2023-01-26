@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"ad-api/internal/controllers"
 	"ad-api/internal/entity"
 	"ad-api/internal/repository"
 	"errors"
@@ -26,7 +27,8 @@ func NewAdUsecase(r repository.CreateAds)*AdUsecase{
 	}
 }
 
-func (u *AdUsecase)CreateAd(ad entity.Ad)(string,error){
+func (u *AdUsecase)CreateAd(requestAd controllers.AdRequest)(string,error){
+	var ad entity.Ad
 	ad.Guid = uuid.NewString()
 
 	err := validation(ad)

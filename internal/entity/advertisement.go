@@ -6,11 +6,7 @@ type Ad struct{
 	Name string `json:"name"`
 	Description string `json:"description"`
 	Price float32 `json:"price"`
-	Photos Photos `json:"photo"`
-	Date string `json:"date_creation"`
-	Link1 string `json:"link1"`
-	Link2 string `json:"link2"`
-	Link3 string `json:"link3"`
+	Photos []Photos `json:"photo"`
 }
 
 type Photos struct{
