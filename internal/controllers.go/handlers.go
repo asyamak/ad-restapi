@@ -36,7 +36,7 @@ func(h *Handler) GetAds(w http.ResponseWriter, r *http.Request){
 		return
 	}
 	fmt.Printf("page request %v\n",request)
-	h.usecase.GetAds(request.Page)
+	h.usecase.GetAds(request)
 
 	fmt.Println(request)
 	w.Header().Set("Content-Type", "application/json")

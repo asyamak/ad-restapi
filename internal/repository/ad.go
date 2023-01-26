@@ -10,7 +10,7 @@ type CreateAds interface{
 	CreateAd(ad entity.Ad)(int,error)
 	AddPhotos(photos entity.Photos)(int,error)
 	InsertAdPhotos(adId,photoId int)error
-	GetAdsAsc(page,offset int) ([]entity.Ad, error)
+	GetAdsAsc(search entity.Search,offset int) ([]entity.Ad, error)
 }
 
 type CreateAdRepository struct{
@@ -74,8 +74,9 @@ func(r *CreateAdRepository)InsertAdPhotos(adId,photoId int)error{
 	return nil
 }
 
-func(r *CreateAdRepository)GetAdsAsc(page,offset int) ([]entity.Ad, error){
-	query := `SELECT id, guid, name, description, price FROM ads ORDER BY ASC LIMIT $1 OFFSET $2;`
+//GetAdsAsc function sorts all ads by price asc and date of creation asc
+func(r *CreateAdRepository)GetAdsAsc(search entity.Search,offset int) ([]entity.Ad, error){
+	query := `SELECT id, guid, name, description, price, date_creation FROM ads ORDER BY price ASC date_creation ASC LIMIT $1 OFFSET $2;`
 
 	var ads []entity.Ad
 
@@ -85,7 +86,7 @@ func(r *CreateAdRepository)GetAdsAsc(page,offset int) ([]entity.Ad, error){
 	}
 	defer stmt.Close()
 
-	rows, err := stmt.Query(page,offset)
+	rows, err := stmt.Query(search.Page,offset)
 	if err != nil {
 		return nil, err
 	}
@@ -94,13 +95,12 @@ func(r *CreateAdRepository)GetAdsAsc(page,offset int) ([]entity.Ad, error){
 
 	for rows.Next(){
 		var ad entity.Ad
-		err = rows.Scan(&ad.Id,&ad.Guid,&ad.Name,&ad.Description,&ad.Price)
+		err = rows.Scan(&ad.Id,&ad.Guid,&ad.Name,&ad.Description,&ad.Price,&ad.Date)
 		if err != nil {
 			return nil, err
 		}
 
 		ads = append(ads, ad)
-
 	}
 
 	if err = rows.Err(); err != nil{

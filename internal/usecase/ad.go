@@ -11,7 +11,7 @@ import (
 
 type AdsUsecase interface{
 	CreateAd(ad entity.Ad)(string,error)
-	GetAds(page int)
+	GetAds(search entity.Search)
 }
 
 
@@ -72,14 +72,17 @@ func validation(ad entity.Ad) error{
 	return nil
 }
 
-func (u *AdUsecase)GetAds(page int){
+func (u *AdUsecase)GetAds(search entity.Search){
 	
-	offset := (page - 1) * 10
-	ads,err := u.Repository.GetAdsAsc(page,offset)
-	if err != nil {
-		fmt.Printf("error getads: %v\n",err)
+	offset := (search.Page - 1) * 10
+	
+	if search.PricePreference == "asc"{
+		ads,err := u.Repository.GetAdsAsc(search,offset)
+		if err != nil {
+			fmt.Printf("error getads: %v\n",err)
+		}
+		fmt.Println(ads)
 	}
-	fmt.Println(ads)
 
 
 

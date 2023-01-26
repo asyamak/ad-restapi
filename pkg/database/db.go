@@ -32,7 +32,8 @@ const adTable = `CREATE TABLE IF NOT EXISTS ad (
 	guid TEXT,
 	name VARCHAR(200),
 	description varchar(2000),
-	price FLOAT
+	price FLOAT,
+	date  DATE DEFAULT (datetime('now'))
 );`
 
 const photos = `CREATE TABLE IF NOT EXISTS photo(
