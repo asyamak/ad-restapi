@@ -3,6 +3,7 @@ package usecase
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"ad-api/internal/entity"
 	"ad-api/internal/repository"
@@ -10,9 +11,15 @@ import (
 	"github.com/google/uuid"
 )
 
+var (
+	ErrDiscriptionLength = errors.New("invalid discription length")
+	ErrNameLength        = errors.New("invalid name legth")
+	ErrLinkNumber        = errors.New("invalid link number")
+)
+
 type AdsUsecase interface {
 	CreateAd(ad entity.Ad) (string, error)
-	GetAds(search entity.Search)
+	GetAds(search entity.Search) ([]entity.Ad, error)
 }
 
 type AdUsecase struct {
@@ -37,26 +44,9 @@ func (u *AdUsecase) CreateAd(requestAd entity.Ad) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	fmt.Println("created ad - success!!!")
-
-	// photoId, err := u.Repository.AddPhotos(requestAd.Photos, requestAd.Guid)
-	// if err != nil {
-	// 	return "", err
-	// }
-
-	// err = u.Repository.InsertAdPhotos(adId, photoId)
-	// if err != nil {
-	// 	return "", err
-	// }
 
 	return requestAd.Guid, nil
 }
-
-var (
-	ErrDiscriptionLength = errors.New("invalid discription length")
-	ErrNameLength        = errors.New("invalid name legth")
-	ErrLinkNumber        = errors.New("invalid link number")
-)
 
 func validation(ad entity.Ad) error {
 	if len(ad.Description) > 1000 {
@@ -72,14 +62,20 @@ func validation(ad entity.Ad) error {
 	return nil
 }
 
-func (u *AdUsecase) GetAds(search entity.Search) {
+func (u *AdUsecase) GetAds(search entity.Search) ([]entity.Ad, error) {
 	offset := (search.Page - 1) * 10
+	var (
+		ads []entity.Ad
+		err error
+	)
 
-	if search.PricePreference == "asc" {
-		ads, err := u.Repository.GetAdsAsc(search, offset)
-		if err != nil {
-			fmt.Printf("error getads: %v\n", err)
-		}
-		fmt.Println(ads)
+	search.PricePreference = strings.ToUpper(search.PricePreference)
+	search.DatePreference = strings.ToUpper(search.DatePreference)
+
+	ads, err = u.Repository.GetAdsAsc(search, offset)
+	if err != nil {
+		return nil, fmt.Errorf("error get ads: %w", err)
 	}
+
+	return ads, nil
 }

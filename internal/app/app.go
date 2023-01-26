@@ -1,58 +1,54 @@
 package app
 
 import (
-	"ad-api/config"
-	"ad-api/internal/controllers.go"
-	"ad-api/internal/repository"
-	"ad-api/internal/server"
-	"ad-api/internal/usecase"
-	database "ad-api/pkg/database"
 	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"ad-api/config"
+	"ad-api/internal/controllers"
+	"ad-api/internal/repository"
+	"ad-api/internal/server"
+	"ad-api/internal/usecase"
+	database "ad-api/pkg/database"
 )
 
-
-type App struct{
+type App struct {
 	config *config.Config
-
 }
 
-func New(config *config.Config) *App{
+func New(config *config.Config) *App {
 	return &App{
-		 config,
+		config,
 	}
-
 }
 
-func(a *App) Start() error{
-
+func (a *App) Start() error {
 	db, err := database.New(a.config)
 	if err != nil {
-		return fmt.Errorf("app: start: db: %w",err)
+		return fmt.Errorf("app: start: db: %w", err)
 	}
-	
+
 	adsRepository := repository.NewAdRepository(db)
 	adsUsecase := usecase.NewUsecase(adsRepository)
 	adsHandler := controllers.NewHandler(adsUsecase)
 
 	router := controllers.SetUpRouter(adsHandler)
 	server := server.New(a.config, router)
-	
+
 	// fmt.Println(server)
 
-	interrupt := make(chan os.Signal,1)
+	interrupt := make(chan os.Signal, 1)
 
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
 
-
-	select{
-	case s := <- interrupt:
-		log.Printf("signal: "+ s.String())
+	select {
+	case s := <-interrupt:
+		log.Printf("signal: " + s.String())
 	case err = <-server.Notify():
-		log.Printf("signal.Notify: %v",err)
+		log.Printf("signal.Notify: %v", err)
 	}
 
 	err = server.Shutdown()
@@ -61,7 +57,4 @@ func(a *App) Start() error{
 	}
 
 	return nil
-
-
-
 }

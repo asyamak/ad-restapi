@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 
 	"ad-api/internal/entity"
@@ -14,42 +15,52 @@ type Handler struct {
 	usecase *usecase.Usecase
 }
 
-func NewHandler(u *usecase.Usecase) *Handler {
+func NewHandler(uc *usecase.Usecase) *Handler {
 	return &Handler{
-		usecase: u,
+		usecase: uc,
 	}
 }
 
+type SearchInputRequest struct {
+	Page            int    `json:"page"`
+	PricePreference string `json:"price"`
+	DatePreference  string `json:"date"`
+}
+
 func (h *Handler) GetAds(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
+	if r.Method != http.MethodPost {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
 	}
-	request := entity.Search{}
+
+	var request SearchInputRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
-	fmt.Printf("page request %v\n", request)
-	h.usecase.GetAds(request)
 
-	fmt.Println(request)
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
+	ads, err := h.usecase.GetAds(entity.Search{
+		Page:            request.Page,
+		PricePreference: request.PricePreference,
+		DatePreference:  request.DatePreference,
+	})
+	if err != nil {
+		log.Println(err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(ads); err != nil {
+		log.Println(err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func (h *Handler) GetOneAd(w http.ResponseWriter, r *http.Request) {}
-
-// type AdRequest struct{
-// 	Name string `json:"name"`
-// 	Description string `json:"description"`
-// 	Price float32 `json:"price"`
-// 	Links []PhotoLinks `json:"photo_links"`
-// }
-//  type PhotoLinks struct{
-// 	Link string `json:"link"`
-// }
 
 type AdRequest struct {
 	Name        string   `json:"name"`
@@ -70,15 +81,13 @@ func (h *Handler) CreateAd(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
-
-	// fmt.Printf("request body %v\n", request)
 	var ph []entity.Photos
 	for _, v := range request.PhotoLinks {
 		ph = append(ph, entity.Photos{
 			Link: v,
 		})
 	}
-	fmt.Println(ph)
+
 	id, err := h.usecase.CreateAd(entity.Ad{
 		Name:        request.Name,
 		Description: request.Description,
@@ -99,9 +108,12 @@ func (h *Handler) CreateAd(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	// fmt.Printf("id from created ad %v\n",id)
-	// fmt.Printf("id from created ad %v\n",id)
-	fmt.Printf("id %v\n", id)
+	if err := json.NewEncoder(w).Encode(id); err != nil {
+		log.Println(err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusCreated)
 }
 
