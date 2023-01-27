@@ -38,7 +38,7 @@ const adTable = `CREATE TABLE IF NOT EXISTS ad (
 
 const photos = `CREATE TABLE IF NOT EXISTS photo(
 	id SERIAL PRIMARY KEY,
-	guid text REFERENCES ad(guid) ON DELETE CASCADE,
+	guid uuid,
 	link TEXT
 );`
 

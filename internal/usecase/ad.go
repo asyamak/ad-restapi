@@ -20,7 +20,7 @@ var (
 
 type AdsUsecase interface {
 	CreateAd(ad entity.Ad) (string, error)
-	GetAds(search entity.Search) ([]entity.Ad, error)
+	GetAds(search entity.Search) ([]entity.DisplayAds, error)
 	DeleteById(guid string) error
 }
 
@@ -37,13 +37,11 @@ func NewAdUsecase(r repository.CreateAds) *AdUsecase {
 func (u *AdUsecase) CreateAd(requestAd entity.Ad) (string, error) {
 	requestAd.Guid = uuid.NewString()
 
-	err := validation(requestAd)
-	if err != nil {
+	if err := validation(requestAd); err != nil {
 		return "", err
 	}
 
-	err = u.Repository.CreateAd(requestAd)
-	if err != nil {
+	if err := u.Repository.CreateAd(requestAd); err != nil {
 		return "", err
 	}
 
@@ -54,6 +52,7 @@ func validation(ad entity.Ad) error {
 	if len(ad.Description) > 1000 {
 		return ErrDiscriptionLength
 	}
+
 	if len(ad.Name) > 200 {
 		return ErrNameLength
 	}
@@ -61,22 +60,33 @@ func validation(ad entity.Ad) error {
 	if len(ad.Photos) > 3 {
 		return ErrLinkNumber
 	}
+
 	return nil
 }
 
-func (u *AdUsecase) GetAds(search entity.Search) ([]entity.Ad, error) {
+var ErrWrongQuery = errors.New("invalid query request")
+
+func (u *AdUsecase) GetAds(search entity.Search) ([]entity.DisplayAds, error) {
 	offset := (search.Page - 1) * 10
+
 	var (
-		ads []entity.Ad
+		ads []entity.DisplayAds
 		err error
 	)
 
 	search.PricePreference = strings.ToUpper(search.PricePreference)
 	search.DatePreference = strings.ToUpper(search.DatePreference)
 
-	ads, err = u.Repository.GetAdsAsc(search, offset)
-	if err != nil {
-		return nil, fmt.Errorf("error get ads: %w", err)
+	if search.DatePreference == "" && search.PricePreference != "" {
+		ads, err = u.Repository.GetAdsByPrice(search.PricePreference, offset)
+		if err != nil {
+			return nil, fmt.Errorf("error get ads: %w", err)
+		}
+	} else {
+		ads, err = u.Repository.GetAdsByDate(search.DatePreference, offset)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return ads, nil
@@ -84,15 +94,17 @@ func (u *AdUsecase) GetAds(search entity.Search) ([]entity.Ad, error) {
 
 var ErrUuidLength = errors.New("invalid length of uuid")
 
+// DeleteById function receive guid of ad, checks it and deletes it accordingly
 func (u *AdUsecase) DeleteById(guid string) error {
-	if len(guid) > 16 || len(guid) < 16 {
+	if len(guid) != 36 {
 		return ErrUuidLength
 	}
+
 	guid = strings.TrimSpace(guid)
-	fmt.Println(guid)
-	err := u.Repository.DeleteAdById(guid)
-	if err != nil {
+
+	if err := u.Repository.DeleteAdById(guid); err != nil {
 		return err
 	}
+
 	return nil
 }

@@ -1,7 +1,7 @@
 package entity
 
 type Ad struct {
-	Id          int      `json:"id"`
+	Id          int
 	Guid        string   `json:"guid"`
 	Name        string   `json:"name"`
 	Description string   `json:"description"`
@@ -10,8 +10,8 @@ type Ad struct {
 }
 
 type Photos struct {
-	Id   int    `json:"id"`
-	Guid string `json:"guid"`
+	Id   int
+	Guid string
 	Link string `json:"link"`
 }
 
@@ -25,4 +25,10 @@ type Search struct {
 	Page            int    `json:"page"`
 	PricePreference string `json:"price"`
 	DatePreference  string `json:"date"`
+}
+
+type DisplayAds struct {
+	Name  string  `json:"name"`
+	Link  string  `json:"link"`
+	Price float32 `json:"price"`
 }
