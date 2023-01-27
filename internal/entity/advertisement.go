@@ -32,3 +32,14 @@ type DisplayAds struct {
 	Link  string  `json:"link"`
 	Price float32 `json:"price"`
 }
+
+type DisplayAd struct {
+	Name        string  `json:"name,omitempty"`
+	Description string  `json:"description,omitempty"`
+	Price       float32 `json:"price,omitempty"`
+	Links       []Links `json:"links,omitempty"`
+}
+
+type Links struct {
+	Link string `json:"link,omitempty"`
+}

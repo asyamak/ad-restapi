@@ -75,6 +75,18 @@ func (h *Handler) GetOneAd(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
+	request, err := h.usecase.GetOneAdById(id.Id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if err := json.NewEncoder(w).Encode(request); err != nil {
+		log.Println(err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 type AdRequest struct {

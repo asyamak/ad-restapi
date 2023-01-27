@@ -22,6 +22,7 @@ type AdsUsecase interface {
 	CreateAd(ad entity.Ad) (string, error)
 	GetAds(search entity.Search) ([]entity.DisplayAds, error)
 	DeleteById(guid string) error
+	GetOneAdById(guid string) (entity.DisplayAd, error)
 }
 
 type AdUsecase struct {
@@ -107,4 +108,17 @@ func (u *AdUsecase) DeleteById(guid string) error {
 	}
 
 	return nil
+}
+
+func (u *AdUsecase) GetOneAdById(guid string) (entity.DisplayAd, error) {
+	if len(guid) != 36 {
+		return entity.DisplayAd{}, ErrUuidLength
+	}
+
+	ad, err := u.Repository.GetAdByGuid(guid)
+	if err != nil {
+		return entity.DisplayAd{}, err
+	}
+
+	return ad, nil
 }

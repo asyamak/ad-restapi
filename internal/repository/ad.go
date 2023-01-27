@@ -16,6 +16,7 @@ type CreateAds interface {
 	GetAdsByPrice(pricePreference string, offset int) ([]entity.DisplayAds, error)
 	GetAdsByDate(datePreference string, offset int) ([]entity.DisplayAds, error)
 	DeleteAdById(guid string) error
+	GetAdByGuid(guid string) (entity.DisplayAd, error)
 }
 
 type CreateAdRepository struct {
@@ -284,4 +285,71 @@ func (r *CreateAdRepository) DeleteAdById(guid string) error {
 	}
 
 	return nil
+}
+
+func (r *CreateAdRepository) GetAdByGuid(guid string) (entity.DisplayAd, error) {
+	query := "SELECT name, description, price FROM ad WHERE guid = $1;"
+	tx, err := r.db.Begin()
+	if err != nil {
+		return entity.DisplayAd{}, err
+	}
+
+	var ad entity.DisplayAd
+
+	stmt, err := tx.Prepare(query)
+	if err != nil {
+		return entity.DisplayAd{}, err
+	}
+
+	defer stmt.Close()
+
+	err = stmt.QueryRow(guid).Scan(
+		&ad.Name,
+		&ad.Description,
+		&ad.Price,
+	)
+	if err != nil {
+		if err := tx.Rollback(); err != nil {
+			return entity.DisplayAd{}, err
+		}
+		return entity.DisplayAd{}, err
+	}
+
+	query = `SELECT link FROM photo WHERE guid = $1;`
+	stmt, err = tx.Prepare(query)
+	if err != nil {
+		if err := tx.Rollback(); err != nil {
+			return entity.DisplayAd{}, err
+		}
+		return entity.DisplayAd{}, err
+	}
+
+	rows, err := stmt.Query(guid)
+	if err != nil {
+		if err := tx.Rollback(); err != nil {
+			return entity.DisplayAd{}, err
+		}
+		log.Printf("link doesn't found\n")
+	}
+
+	for rows.Next() {
+		var photo_link entity.Links
+
+		if err := rows.Scan(&photo_link.Link); err != nil {
+			if err := tx.Rollback(); err != nil {
+				return entity.DisplayAd{}, err
+			}
+			return entity.DisplayAd{}, err
+		}
+		ad.Links = append(ad.Links, photo_link)
+	}
+
+	if err := tx.Commit(); err != nil {
+		if err := tx.Rollback(); err != nil {
+			return entity.DisplayAd{}, err
+		}
+		return entity.DisplayAd{}, err
+	}
+
+	return ad, nil
 }

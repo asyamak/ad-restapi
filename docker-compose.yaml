@@ -15,4 +15,4 @@ services:
     restart: on-failure
     build: .
     ports:
-      - "4040:4040"
+      - "9090:9090"
