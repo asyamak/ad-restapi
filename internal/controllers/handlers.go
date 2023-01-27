@@ -60,7 +60,21 @@ func (h *Handler) GetAds(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+type GetId struct {
+	Id string `json:"id"`
+}
+
 func (h *Handler) GetOneAd(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "incorrect method", http.StatusMethodNotAllowed)
+		return
+	}
+	var id GetId
+
+	if err := json.NewDecoder(r.Body).Decode(&id); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
 }
 
 type AdRequest struct {
@@ -82,10 +96,11 @@ func (h *Handler) CreateAd(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
-	var ph []entity.Photos
-	for _, v := range request.PhotoLinks {
-		ph = append(ph, entity.Photos{
-			Link: v,
+
+	var photosTemp []entity.Photos
+	for _, link := range request.PhotoLinks {
+		photosTemp = append(photosTemp, entity.Photos{
+			Link: link,
 		})
 	}
 
@@ -93,7 +108,7 @@ func (h *Handler) CreateAd(w http.ResponseWriter, r *http.Request) {
 		Name:        request.Name,
 		Description: request.Description,
 		Price:       request.Price,
-		Photos:      ph,
+		Photos:      photosTemp,
 	})
 	if err != nil {
 		fmt.Printf("error in handler create ad: %v\n", err)
@@ -118,8 +133,7 @@ func (h *Handler) CreateAd(w http.ResponseWriter, r *http.Request) {
 }
 
 type deleteAd struct {
-	Id     string `json:"id"`
-	Status string `json:"status"`
+	Id string `json:"id"`
 }
 
 func (h *Handler) DeleteAd(w http.ResponseWriter, r *http.Request) {
@@ -127,13 +141,13 @@ func (h *Handler) DeleteAd(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "incorrect method", http.StatusMethodNotAllowed)
 		return
 	}
+
 	var request deleteAd
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		http.Error(w, "Invalid request bodyyyyy", http.StatusBadRequest)
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
-	fmt.Printf("request: %v\n", request)
 
 	err := h.usecase.DeleteById(request.Id)
 	if err != nil {
@@ -142,16 +156,15 @@ func (h *Handler) DeleteAd(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusForbidden)
 			return
 		}
-		http.Error(w, "internal server errrrror", http.StatusInternalServerError)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
-
-	request.Status = "success"
 
 	if err := json.NewEncoder(w).Encode(request); err != nil {
 		log.Println(err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
+
 	w.WriteHeader(http.StatusOK)
 }
