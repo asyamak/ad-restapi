@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"database/sql"
 	"log"
 	"net/http"
 	"time"
@@ -13,17 +12,15 @@ import (
 type Server struct {
 	Srv    *http.Server
 	notify chan error
-	db     *sql.DB
 }
 
-func New(cnf *config.Config, router *http.ServeMux, db *sql.DB) *Server {
+func New(cnf *config.Config, router *http.ServeMux) *Server {
 	server := &Server{
 		Srv: &http.Server{
-			Addr:    ":" + cnf.App_Port,
+			Addr:    ":" + cnf.App.Port,
 			Handler: router,
 		},
 		notify: make(chan error, 1),
-		db:     db,
 	}
 	server.start()
 
@@ -46,6 +43,5 @@ func (s *Server) Notify() <-chan error {
 func (s *Server) Shutdown() error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
-	s.db.Close()
 	return s.Srv.Shutdown(ctx)
 }

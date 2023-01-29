@@ -8,8 +8,6 @@ import (
 	// "ad-api/internal/controllers"
 	"ad-api/internal/entity"
 	"ad-api/internal/repository"
-
-	"github.com/google/uuid"
 )
 
 var (
@@ -19,8 +17,8 @@ var (
 )
 
 type AdsUsecase interface {
-	CreateAd(ad entity.Ad) (string, error)
-	GetAds(search entity.Search) ([]entity.DisplayAds, error)
+	CreateAd(ad *entity.Ad) (string, error)
+	GetAds(search *entity.Search) ([]entity.DisplayAds, error)
 	DeleteById(guid string) error
 	GetOneAdById(guid string) (entity.DisplayAd, error)
 }
@@ -29,17 +27,17 @@ type AdUsecase struct {
 	Repository repository.CreateAds
 }
 
-func NewAdUsecase(r repository.CreateAds) *AdUsecase {
+func NewAdUsecase(r repository.CreateAds) AdsUsecase {
 	return &AdUsecase{
 		Repository: r,
 	}
 }
 
-func (u *AdUsecase) CreateAd(requestAd entity.Ad) (string, error) {
-	requestAd.Guid = uuid.NewString()
+func (u *AdUsecase) CreateAd(requestAd *entity.Ad) (string, error) {
+	// requestAd.Guid = requestAd.Guid
 
 	if err := validation(requestAd); err != nil {
-		return "", err
+		return "", fmt.Errorf("usecase: create ad: validation: %w", err)
 	}
 
 	if err := u.Repository.CreateAd(requestAd); err != nil {
@@ -49,7 +47,7 @@ func (u *AdUsecase) CreateAd(requestAd entity.Ad) (string, error) {
 	return requestAd.Guid, nil
 }
 
-func validation(ad entity.Ad) error {
+func validation(ad *entity.Ad) error {
 	if len(ad.Description) > 1000 {
 		return ErrDiscriptionLength
 	}
@@ -67,7 +65,7 @@ func validation(ad entity.Ad) error {
 
 var ErrWrongQuery = errors.New("invalid query request")
 
-func (u *AdUsecase) GetAds(search entity.Search) ([]entity.DisplayAds, error) {
+func (u *AdUsecase) GetAds(search *entity.Search) ([]entity.DisplayAds, error) {
 	offset := (search.Page - 1) * 10
 
 	var (
@@ -81,12 +79,12 @@ func (u *AdUsecase) GetAds(search entity.Search) ([]entity.DisplayAds, error) {
 	if search.DatePreference == "" && search.PricePreference != "" {
 		ads, err = u.Repository.GetAdsByPrice(search.PricePreference, offset)
 		if err != nil {
-			return nil, fmt.Errorf("error get ads: %w", err)
+			return nil, fmt.Errorf("usecase: get ads: price preference: %w", err)
 		}
 	} else {
 		ads, err = u.Repository.GetAdsByDate(search.DatePreference, offset)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("usecase: get ads: date preference: %w", err)
 		}
 	}
 
@@ -98,7 +96,7 @@ var ErrUuidLength = errors.New("invalid length of uuid")
 // DeleteById function receive guid of ad, checks it and deletes it accordingly
 func (u *AdUsecase) DeleteById(guid string) error {
 	if len(guid) != 36 {
-		return ErrUuidLength
+		return fmt.Errorf("usecase: delete by id: %w", ErrUuidLength)
 	}
 
 	guid = strings.TrimSpace(guid)
@@ -112,7 +110,7 @@ func (u *AdUsecase) DeleteById(guid string) error {
 
 func (u *AdUsecase) GetOneAdById(guid string) (entity.DisplayAd, error) {
 	if len(guid) != 36 {
-		return entity.DisplayAd{}, ErrUuidLength
+		return entity.DisplayAd{}, fmt.Errorf("usecase: get one ad by id: %w", ErrUuidLength)
 	}
 
 	ad, err := u.Repository.GetAdByGuid(guid)

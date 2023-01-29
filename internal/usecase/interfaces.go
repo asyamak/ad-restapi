@@ -2,12 +2,12 @@ package usecase
 
 import "ad-api/internal/repository"
 
-type Usecase struct {
+type AdService struct {
 	AdsUsecase
 }
 
-func NewUsecase(r *repository.Repository) *Usecase {
-	return &Usecase{
+func NewUsecase(r *repository.Repository) *AdService {
+	return &AdService{
 		AdsUsecase: NewAdUsecase(r.CreateAds),
 	}
 }

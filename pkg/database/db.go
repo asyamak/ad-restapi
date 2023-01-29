@@ -2,26 +2,35 @@ package database
 
 import (
 	"database/sql"
+	"fmt"
+	"sync"
 
 	"ad-api/config"
 
 	_ "github.com/lib/pq"
 )
 
+var (
+	once sync.Once
+	db   *sql.DB
+)
+
 func New(cfg *config.Config) (*sql.DB, error) {
 	// dbConfig := fmt.Sprintf("user=%s dbname=%s host=%s port=%s password=%s sslmode=%s", cfg.User, cfg.DBname, cfg.Hostname,cfg.Port, cfg.Password,cfg.Ssl)
-
-	db, err := sql.Open("postgres", cfg.DatabaseUrl)
-	if err != nil {
-		return nil, err
-	}
+	var err error
+	once.Do(func() {
+		db, err = sql.Open("postgres", cfg.DataBase.DatabaseURL)
+		if err != nil {
+			fmt.Printf("db: open: %v\n", err)
+		}
+	})
 
 	if err = db.Ping(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("db: ping: %w", err)
 	}
 
 	if err = createTable(db); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("db: create tables: %w", err)
 	}
 
 	return db, nil

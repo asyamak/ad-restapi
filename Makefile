@@ -30,3 +30,6 @@ dcomposeup:
 
 dcomposedown:
 	docker compose down 
+
+test:
+	go test ./...

@@ -9,22 +9,18 @@ import (
 
 	"ad-api/internal/entity"
 	"ad-api/internal/usecase"
+
+	"github.com/google/uuid"
 )
 
 type Handler struct {
-	usecase *usecase.Usecase
+	adService *usecase.AdService
 }
 
-func NewHandler(uc *usecase.Usecase) *Handler {
+func NewHandler(uc *usecase.AdService) *Handler {
 	return &Handler{
-		usecase: uc,
+		adService: uc,
 	}
-}
-
-type SearchInputRequest struct {
-	Page            int    `json:"page"`
-	PricePreference string `json:"price"`
-	DatePreference  string `json:"date"`
 }
 
 func (h *Handler) GetAds(w http.ResponseWriter, r *http.Request) {
@@ -40,7 +36,7 @@ func (h *Handler) GetAds(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ads, err := h.usecase.GetAds(entity.Search{
+	ads, err := h.adService.GetAds(&entity.Search{
 		Page:            request.Page,
 		PricePreference: request.PricePreference,
 		DatePreference:  request.DatePreference,
@@ -51,6 +47,8 @@ func (h *Handler) GetAds(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
+
 	if err := json.NewEncoder(w).Encode(ads); err != nil {
 		log.Println(err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -58,10 +56,6 @@ func (h *Handler) GetAds(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-}
-
-type GetId struct {
-	Id string `json:"id"`
 }
 
 func (h *Handler) GetOneAd(w http.ResponseWriter, r *http.Request) {
@@ -75,11 +69,14 @@ func (h *Handler) GetOneAd(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
-	request, err := h.usecase.GetOneAdById(id.Id)
+	request, err := h.adService.GetOneAdById(id.Id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	w.Header().Set("Content-Type", "application/json")
+
 	if err := json.NewEncoder(w).Encode(request); err != nil {
 		log.Println(err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -87,13 +84,6 @@ func (h *Handler) GetOneAd(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-}
-
-type AdRequest struct {
-	Name        string   `json:"name"`
-	Description string   `json:"description"`
-	Price       float32  `json:"price"`
-	PhotoLinks  []string `json:"photo_links"`
 }
 
 func (h *Handler) CreateAd(w http.ResponseWriter, r *http.Request) {
@@ -116,8 +106,9 @@ func (h *Handler) CreateAd(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	id, err := h.usecase.CreateAd(entity.Ad{
+	id, err := h.adService.CreateAd(&entity.Ad{
 		Name:        request.Name,
+		Guid:        uuid.New().String(),
 		Description: request.Description,
 		Price:       request.Price,
 		Photos:      photosTemp,
@@ -135,6 +126,8 @@ func (h *Handler) CreateAd(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
+
 	if err := json.NewEncoder(w).Encode(id); err != nil {
 		log.Println(err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -144,24 +137,20 @@ func (h *Handler) CreateAd(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-type deleteAd struct {
-	Id string `json:"id"`
-}
-
 func (h *Handler) DeleteAd(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		http.Error(w, "incorrect method", http.StatusMethodNotAllowed)
 		return
 	}
 
-	var request deleteAd
+	var request DeleteAd
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	err := h.usecase.DeleteById(request.Id)
+	err := h.adService.DeleteById(request.Id)
 	if err != nil {
 		if errors.Is(err, usecase.ErrUuidLength) {
 			log.Printf("error incorrect guid")
@@ -171,6 +160,8 @@ func (h *Handler) DeleteAd(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
+
+	w.Header().Set("Content-Type", "application/json")
 
 	if err := json.NewEncoder(w).Encode(request); err != nil {
 		log.Println(err)

@@ -1,11 +1,16 @@
 {
-    "databaseUrl":"user=postgres dbname=postgres host=postgres port=5432 password=postgres sslmode=disable",
-    "app_port": "9090",
-    "user": "postgres",
-    "dbname": "postgres",
-    "hostname": "postgres",
-    "port": "5432",
-    "password": "postgres",
-    "ssl": "disable"
-    
+    "app_config":{
+        "app_port": "9090"
+
+    }, 
+
+    "db_config": {
+        "database_url":"user=postgres dbname=postgres host=postgres port=8888 password=postgres sslmode=disable",
+        "user": "postgres",
+        "db_name": "postgres",
+        "hostname": "postgres",
+        "port": "8888",
+        "password": "postgres",
+        "ssl": "disable"
+    }
 }

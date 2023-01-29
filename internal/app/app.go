@@ -36,7 +36,7 @@ func (a *App) Start() error {
 	adsHandler := controllers.NewHandler(adsUsecase)
 
 	router := controllers.SetUpRouter(adsHandler)
-	server := server.New(a.config, router, db)
+	server := server.New(a.config, router)
 
 	// check graceful shutdown
 	interrupt := make(chan os.Signal, 1)

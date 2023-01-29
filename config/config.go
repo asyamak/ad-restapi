@@ -7,10 +7,17 @@ import (
 )
 
 type Config struct {
-	DatabaseUrl string `json:"databaseUrl"`
-	App_Port    string `json:"app_port"`
+	App      AppConfig      `json:"app_config"`
+	DataBase DataBaseConfig `json:"db_config"`
+}
+type AppConfig struct {
+	Port string `json:"app_port"`
+}
+
+type DataBaseConfig struct {
+	DatabaseURL string `json:"database_url"`
 	User        string `json:"user"`
-	DBname      string `json:"dbname"`
+	DbName      string `json:"db_name"`
 	Hostname    string `json:"hostname"`
 	Port        string `json:"port"`
 	Password    string `json:"password"`
@@ -27,14 +34,6 @@ func New(filename string) (*Config, error) {
 	if err = json.NewDecoder(configFile).Decode(&config); err != nil {
 		return nil, fmt.Errorf("decoding: %w", err)
 	}
-	// &Config{
-	// 	DatabaseUrl: ,
-	// 	User: config.User,
-	// 	DBname: config.DBname,
-	// 	Hostname: config.Hostname,
-	// 	Port: config.Port,
-	// 	Password: config.Password,
-	// 	Ssl: config.Ssl,
-	// },
+
 	return config, nil
 }
